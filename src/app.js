@@ -1,12 +1,15 @@
 import express, { json, urlencoded } from "express"
 import handlebars from "express-handlebars"
 import __dirname from "./utils/utils.js"
+import viewsRouter from './routes/views.router.js'
+import { Server } from 'socket.io'
+
 
 const app = express()
 const PORT = 8080
 
-import productsRouter from "./routes/products.router.js"
-import cartsRouter from "./routes/carts.router.js"
+//import productsRouter from "./routes/products.router.js"
+//import cartsRouter from "./routes/carts.router.js"
 
 // Middlewares
 app.use(json())
@@ -16,14 +19,16 @@ app.use(urlencoded({ extended: true }))
 app.engine('handlebars', handlebars.engine())
 app.set('views', __dirname + '/views')
 app.set('view engine', 'handlebars')
-//Utilizar recursos estáticos
+app.use(express.static(__dirname, + '/public'));
 
-app.use(express.static(__dirname, +  '/public'));
 
-app.use("/", cartsRouter)
-app.use("/", productsRouter)
+//app.use("/", cartsRouter)
+//app.use("/", productsRouter)
+app.use('/', viewsRouter)
 
-// LISTENER
-app.listen(PORT, () => {
-    console.log(`Server running on port: ${PORT}`)
+const httpServer = app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+const socketServer = new Server(httpServer)
+
+socketServer.on('connection', socket => {
+    console.log("Nuevo cliente conectado ahoraaa")
 })
