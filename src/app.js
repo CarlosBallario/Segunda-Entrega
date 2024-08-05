@@ -1,34 +1,48 @@
-import express, { json, urlencoded } from "express"
-import handlebars from "express-handlebars"
-import __dirname from "./utils/utils.js"
-import viewsRouter from './routes/views.router.js'
-import { Server } from 'socket.io'
+import express from 'express';
+import handlebars from 'express-handlebars'; 
+import { Server } from 'socket.io'; 
+import productsRouter from './routes/products.router.js'; 
+import cartsRouter from './routes/carts.router.js'; 
+import viewsRouter from './routes/views.router.js'; 
+import __dirname, { readProducts, writeProducts, readCarts, writeCarts } from './utils/utils.js'; 
 
+const app = express();
+const PORT = 8080; 
 
-const app = express()
-const PORT = 8080
+const products = readProducts(); 
+const carts = readCarts(); 
 
-//import productsRouter from "./routes/products.router.js"
-//import cartsRouter from "./routes/carts.router.js"
+app.engine('handlebars', handlebars.engine()); 
+app.set('view engine', 'handlebars'); 
+app.set('views', __dirname + '/views'); 
 
-// Middlewares
-app.use(json())
-app.use(urlencoded({ extended: true }))
+app.use(express.static('src/public')); 
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
-// Configurar handlebars
-app.engine('handlebars', handlebars.engine())
-app.set('views', __dirname + '/views')
-app.set('view engine', 'handlebars')
-app.use(express.static(__dirname, + '/public'));
+const httpServer = app.listen(PORT, () => console.log(`Server running on port ${PORT}`)); 
+const io = new Server(httpServer); 
 
+app.use('/Compus', productsRouter(io)); 
+app.use('/carrito', cartsRouter(io)); 
 
-//app.use("/", cartsRouter)
-//app.use("/", productsRouter)
-app.use('/', viewsRouter)
+app.use('/', viewsRouter); 
 
-const httpServer = app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
-const socketServer = new Server(httpServer)
+io.on('connection', (socket) => {
+    console.log('New client connected'); 
 
-socketServer.on('connection', socket => {
-    console.log("Nuevo cliente conectado ahoraaa")
-})
+    socket.emit('updateProducts', products);
+
+    socket.on('addProduct', (product) => {
+        product.id = products.length ? products[products.length - 1].id + 1 : 1; 
+        products.push(product); 
+        writeProducts(products); 
+        io.emit('updateProducts', products); 
+    });
+
+    socket.on('deleteProduct', (productId) => {
+        const updatedProducts = products.filter(product => product.id !== productId); 
+        writeProducts(updatedProducts); 
+        io.emit('updateProducts', updatedProducts); 
+    });
+});

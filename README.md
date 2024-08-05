@@ -1,6 +1,7 @@
 ### Primera Entrega Backend I Coderhouse 
 _____________________________________________________________________________________________________
 Este código corresponde a la Primera Entrega del curso de Backend I de CoderHouse, de acuerdo a los requerimientos solicitados en la consigna.
+En este mismo trabajo agrego las consignas de la segunda enrega que son incorporar Handlebars y Websocket.
 _____________________________________________________________________________________________________
 
 #### Información del Proyecto:

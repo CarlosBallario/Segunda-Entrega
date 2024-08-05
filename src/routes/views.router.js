@@ -1,9 +1,17 @@
-import express from 'express'
+import express from 'express'; 
+import { readProducts } from '../utils/utils.js'; 
 
-const router = express.Router()
+const router = express.Router(); 
+const getProducts = () => readProducts();
 
-router.get('/', (req, res)=> {
-    res.render('index')
-})
+router.get('/', (req, res) => {
+    const products = getProducts(); 
+    res.render('home', { products }); 
+});
 
-export default router
+router.get('/realtimeproducts', (req, res) => {
+    const products = readProducts(); 
+    res.render('realTimeProducts', { products }); 
+});
+
+export default router; 
